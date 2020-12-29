@@ -40,6 +40,7 @@
 #include "exec.h"
 #include "led.h"
 #include "export.h"
+#include "import.h"
 #include "rules.h"
 
 static int g_rootfd = AT_FDCWD;
@@ -81,6 +82,25 @@ static void *rules_exportrule(int gpioid, config_setting_t *export)
 	}
 	if (url != NULL)
 		ctx = export_create(g_rootfd, url, format, gpioid);
+	return ctx;
+}
+
+static void *rules_importrule(int gpioid, config_setting_t *import)
+{
+	void *ctx = NULL;
+	const char *url = NULL;
+	const char *format = "simple";
+	if (config_setting_type(import) == CONFIG_TYPE_STRING)
+	{
+		url = config_setting_get_string(import);
+	}
+	else if (config_setting_is_group(import))
+	{
+		config_setting_lookup_string(import, "url", &url);
+		config_setting_lookup_string(import, "format", &format);
+	}
+	if (url != NULL)
+		ctx = import_create(url, gpioid, format);
 	return ctx;
 }
 
@@ -143,7 +163,7 @@ static int rules_parserule(config_setting_t *iterator)
 		handler_t run;
 		free_ctx_t free;
 		int action;
-	} handlers[3];
+	} handlers[5];
 	int nhandlers = 0;
 	if (iterator)
 	{
@@ -316,6 +336,16 @@ static int rules_parserule(config_setting_t *iterator)
 				nhandlers++;
 		}
 
+		config_setting_t *import;
+		import = config_setting_lookup(iterator, "import");
+		if (import != NULL)
+		{
+			handlers[nhandlers].ctx = rules_importrule(gpioid[0], import);
+			handlers[nhandlers].run = NULL;
+			handlers[nhandlers].free = &import_free;
+			if (handlers[nhandlers].ctx != NULL)
+				nhandlers++;
+		}
 	}
 	int ret = -1;
 	int i;

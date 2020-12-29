@@ -13,6 +13,7 @@ gpiod_SOURCES+=gpiomonitor.c
 gpiod_SOURCES+=exec.c
 gpiod_SOURCES+=led.c
 gpiod_SOURCES+=export.c
+gpiod_SOURCES+=import.c
 gpiod_SOURCES-$(LIBCONFIG)+=rules_conf.c
 gpiod_LIBS+=gpiod pthread
 gpiod_LIBS-$(LIBCONFIG)+=config
