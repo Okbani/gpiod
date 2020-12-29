@@ -461,19 +461,19 @@ void gpiod_free()
 }
 
 #ifdef TEST
-void test_handler(void *ctx, int chipid, int line, gpiod_event_t event)
+void test_handler(void *ctx, int chipid, int line, struct gpiod_line_event event)
 {
 	dbg("event");
 }
 int main(int argc, char **argv)
 {
-	int line = atoi(argv[1]);
-
-	struct gpiod_chip *chiphandle = gpiod_chip_open("/dev/gpiochip0");
+	char *chip_device = argv[1];
+	int line = atoi(argv[2]);
+	struct gpiod_chip *chiphandle = gpiod_chip_open(chip_device);
 	int chipid = gpiod_addchip(chiphandle);
 	struct gpiod_line *handle;
 	handle = gpiod_chip_get_line(chiphandle, line);
-	int gpioid = gpiod_setline(chipid, handle);
+	int gpioid = gpiod_setline(chipid, handle, "foobar", 0);
 	gpiod_addhandler(gpioid, NULL, test_handler);
 	gpiod_monitor();
 	gpiod_stop();
