@@ -469,13 +469,15 @@ int main(int argc, char **argv)
 {
 	char *chip_device = argv[1];
 	int line = atoi(argv[2]);
+	int value = atoi(argv[3]);
 	struct gpiod_chip *chiphandle = gpiod_chip_open(chip_device);
 	int chipid = gpiod_addchip(chiphandle);
 	struct gpiod_line *handle;
 	handle = gpiod_chip_get_line(chiphandle, line);
-	int gpioid = gpiod_setline(chipid, handle, "foobar", 0);
-	gpiod_addhandler(gpioid, NULL, test_handler);
-	gpiod_monitor();
+	int gpioid = gpiod_setline(chipid, handle, "foobar", GPIOD_LINE_OPTION_OUTPUT);
+	// gpiod_addhandler(gpioid, NULL, test_handler);
+	// gpiod_monitor();
+	gpio_output(gpioid, value);
 	gpiod_stop();
 	return 0;
 }
