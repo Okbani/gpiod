@@ -50,6 +50,7 @@ int gpiod_line(int gpioid);
 int gpiod_state(int gpioid);
 int gpiod_chipid(int gpioid);
 int gpiod_eventable(int gpioid);
+void gpiod_output(int gpioid, int value);
 int gpiod_monitor();
 void gpiod_stop();
 void gpiod_free();

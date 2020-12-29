@@ -278,6 +278,15 @@ int gpiod_eventable(int gpioid)
 		return -1;
 	return !(gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_INPUT);
 }
+
+void gpiod_output(int gpioid, int value)
+{
+	gpio_t *gpio = gpiod_search(gpioid);
+
+	if (gpio != NULL)
+		gpiod_line_set_value(gpio->handle, value);
+}
+
 static int gpiod_setpoll(struct pollfd *poll_set, int numpoll)
 {
 	int numfds = 0;
