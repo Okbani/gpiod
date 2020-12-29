@@ -350,7 +350,7 @@ static int gpiod_dispatch(gpio_t *gpio, struct gpiod_line_event *event)
 	gpio->last = event->event_type | DEBOUNCING;
 	while (handler != NULL)
 	{
-		if (handler->action & event->event_type)
+		if (handler->handler != NULL & handler->action & event->event_type)
 			handler->handler(handler->ctx, gpio->chipid, gpio->id, event);
 		handler = handler->next;
 	}
