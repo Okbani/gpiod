@@ -88,6 +88,7 @@ static void *export_thread(void * arg)
 	while (ctx->run)
 	{
 		int socket = ctx->accept(ctx);
+		dbg("accept loop");
 	}
 	return NULL;
 }
@@ -98,10 +99,16 @@ static void *export_threadevent(void * arg)
 	while (ctx->run)
 	{
 		pthread_mutex_lock(&ctx->mutex);
+		dbg("wait event");
 		while (ctx->events == NULL)
+		{
 			pthread_cond_wait(&ctx->cond, &ctx->mutex);
+			dbg("end of waiting");
+		}
+		dbg("new event");
 		while (ctx->events != NULL)
 		{
+			dbg("format event");
 			ctx->format(ctx, ctx->socket, ctx->events);
 			ctx->events = ctx->events->next;
 		}
@@ -114,6 +121,7 @@ void *export_create(int rootfd, const char *url, const char *format, int gpioid)
 {
 	export_t *ctx = calloc(1, sizeof(*ctx));
 	ctx->rootfd = rootfd;
+	dbg("setup gpioid %.02d", gpioid);
 	ctx->default_event.gpioid = gpioid;
 	ctx->default_event.chipid = gpiod_chipid(gpioid);
 	dbg("export: export %s", url);
@@ -148,6 +156,7 @@ static int export_format_raw(const export_t *ctx, int socket, export_event_t *ev
 
 static int export_format_json(const export_t *ctx, int socket, export_event_t *event)
 {
+	dbg("event gpioid %.02d", event->gpioid);
 	const char *name = gpiod_name(event->gpioid);
 	if (name == NULL)
 		name = str_unamed;
@@ -218,6 +227,8 @@ void export_run(void *arg, int chipid, int gpioid, struct gpiod_line_event *even
 
 	pthread_mutex_lock(&ctx->mutex);
 	export_event_t *new = calloc(1, sizeof(*new));
+	new->chipid = chipid;
+	new->gpioid = gpioid;
 	memcpy(&new->event, event, sizeof(new->event));
 	export_event_t *old = ctx->events;
 	if (old == NULL)

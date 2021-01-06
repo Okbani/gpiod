@@ -127,6 +127,7 @@ void *import_create(const char *url, int gpioid, const char *format)
 // read socket, parse the buffer
 static int import_scan_raw(const import_t *ctx, int socket, import_event_t *event)
 {
+	dbg("scan gpioid %.02d", ctx->default_event.gpioid);
 	event->gpioid = ctx->default_event.gpioid; 
 	event->chipid = ctx->default_event.chipid;
 

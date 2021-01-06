@@ -276,15 +276,21 @@ int gpiod_eventable(int gpioid)
 	gpio_t *gpio = gpiod_search(gpioid);
 	if (gpio == NULL)
 		return -1;
-	return !(gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_INPUT);
+	return !((gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_INPUT) ||
+		(gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_OUTPUT));
 }
 
 void gpiod_output(int gpioid, int value)
 {
+	int ret = -1;
+	dbg("output %.02d", gpioid);
 	gpio_t *gpio = gpiod_search(gpioid);
+	dbg("output %s", gpio->name);
 
 	if (gpio != NULL)
-		gpiod_line_set_value(gpio->handle, value);
+		ret = gpiod_line_set_value(gpio->handle, value);
+	if (ret == -1)
+		err("gpiod: output error %s", strerror(errno));
 }
 
 static int gpiod_setpoll(struct pollfd *poll_set, int numpoll)
