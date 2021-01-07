@@ -222,7 +222,7 @@ static int rules_parserule(config_setting_t *iterator)
 		const char *name = NULL;
 		config_setting_lookup_string(iterator, "name", &name);
 		gpioid[ngpioids] = rules_getgpio(config_setting_lookup(iterator, "line"),
-								chipid, chiphandle, name);
+										 chipid, chiphandle, name);
 		if (gpioid[ngpioids] > -1)
 			ngpioids++;
 		config_setting_t *lines = config_setting_lookup(iterator, "lines");
@@ -230,11 +230,11 @@ static int rules_parserule(config_setting_t *iterator)
 		{
 			int i;
 			int length = config_setting_length(lines);
-			length = (length > 64)?64:length;
+			length = (length > 64) ? 64 : length;
 			for (i = 0; i < length; i++)
 			{
 				gpioid[ngpioids] = rules_getgpio(config_setting_get_elem(lines, i),
-										chipid, chiphandle, name);
+												 chipid, chiphandle, name);
 				if (gpioid[ngpioids] > -1)
 					ngpioids++;
 			}
@@ -275,7 +275,7 @@ static int rules_parserule(config_setting_t *iterator)
 			{
 			case CONFIG_TYPE_INT:
 				handlers[nhandlers].action = config_setting_get_int(action);
-			break;
+				break;
 			case CONFIG_TYPE_STRING:
 				string = config_setting_get_string(action);
 				if (!strcmp(string, "falling"))
@@ -284,7 +284,7 @@ static int rules_parserule(config_setting_t *iterator)
 					handlers[nhandlers].action = GPIOD_LINE_EVENT_RISING_EDGE;
 				if (!strcmp(string, "both"))
 					handlers[nhandlers].action = GPIOD_LINE_EVENT_RISING_EDGE | GPIOD_LINE_EVENT_FALLING_EDGE;
-			break;
+				break;
 			}
 			if (handlers[nhandlers].action < 0 ||
 				handlers[nhandlers].action > (GPIOD_LINE_EVENT_RISING_EDGE | GPIOD_LINE_EVENT_FALLING_EDGE))
@@ -402,12 +402,11 @@ int rules_parse(const char *filepath)
 }
 
 static const char *rulespath[] =
-{
-	"rules.d",
-	"gpiod/rules.d",
-	"gpiod.d",
-	NULL
-};
+	{
+		"rules.d",
+		"gpiod/rules.d",
+		"gpiod.d",
+		NULL};
 
 int rules_set(const char *sysconfdir)
 {
@@ -417,7 +416,7 @@ int rules_set(const char *sysconfdir)
 	{
 		char *path = NULL;
 		if (asprintf(&path, "%s/%s", sysconfdir, rulespath[rulesindex]) == -1 ||
-			 path == NULL)
+			path == NULL)
 			break;
 		rulesdir = opendir(path);
 		free(path);
@@ -436,7 +435,7 @@ int rules_set(const char *sysconfdir)
 	item = readdir(rulesdir);
 	if (item == NULL)
 		err("readdir %s", strerror(errno));
-	while(item != NULL)
+	while (item != NULL)
 	{
 		if (item->d_name[0] == '.')
 		{

@@ -67,7 +67,6 @@ struct export_s
 	pthread_t thread;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
-
 };
 
 static int export_format_raw(const export_t *ctx, int socket, export_event_t *event);
@@ -82,33 +81,28 @@ static const char str_rising[] = "rising";
 static const char str_falling[] = "falling";
 static const char str_unamed[] = "unnamed";
 
-static void *export_thread(void * arg)
+static void *export_thread(void *arg)
 {
 	export_t *ctx = (export_t *)arg;
 	while (ctx->run)
 	{
 		int socket = ctx->accept(ctx);
-		dbg("accept loop");
 	}
 	return NULL;
 }
 
-static void *export_threadevent(void * arg)
+static void *export_threadevent(void *arg)
 {
 	export_t *ctx = (export_t *)arg;
 	while (ctx->run)
 	{
 		pthread_mutex_lock(&ctx->mutex);
-		dbg("wait event");
 		while (ctx->events == NULL)
 		{
 			pthread_cond_wait(&ctx->cond, &ctx->mutex);
-			dbg("end of waiting");
 		}
-		dbg("new event");
 		while (ctx->events != NULL)
 		{
-			dbg("format event");
 			ctx->format(ctx, ctx->socket, ctx->events);
 			ctx->events = ctx->events->next;
 		}
@@ -121,10 +115,8 @@ void *export_create(int rootfd, const char *url, const char *format, int gpioid)
 {
 	export_t *ctx = calloc(1, sizeof(*ctx));
 	ctx->rootfd = rootfd;
-	dbg("setup gpioid %.02d", gpioid);
 	ctx->default_event.gpioid = gpioid;
 	ctx->default_event.chipid = gpiod_chipid(gpioid);
-	dbg("export: export %s", url);
 	if (!strncmp(url, "fifo://", 7))
 	{
 		unlinkat(rootfd, url + 7, 0);
@@ -156,18 +148,17 @@ static int export_format_raw(const export_t *ctx, int socket, export_event_t *ev
 
 static int export_format_json(const export_t *ctx, int socket, export_event_t *event)
 {
-	dbg("event gpioid %.02d", event->gpioid);
 	const char *name = gpiod_name(event->gpioid);
 	if (name == NULL)
 		name = str_unamed;
 	int ret;
 	ret = dprintf(socket,
-			"{\"chip\" = %.2d; " \
-			"\"gpio\" = %.2d; " \
-			"\"name\" = \"%s\"; " \
-			"\"status\" = \"%s\";}\n",
-			event->chipid, gpiod_line(event->gpioid), name,
-			(event->event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)? str_rising: str_falling);
+				  "{\"chip\" = %.2d; "
+				  "\"gpio\" = %.2d; "
+				  "\"name\" = \"%s\"; "
+				  "\"status\" = \"%s\";}\n",
+				  event->chipid, gpiod_line(event->gpioid), name,
+				  (event->event.event_type == GPIOD_LINE_EVENT_RISING_EDGE) ? str_rising : str_falling);
 	return ret;
 }
 
@@ -188,7 +179,6 @@ static int export_accept_fifo(export_t *ctx)
 {
 	/// open block while a reader doesn't open the fifo
 	ctx->socket = openat(ctx->rootfd, ctx->url + 7, O_WRONLY);
-	dbg("export: new fifo client on %s", ctx->url + 7);
 	/// only one reader is possible with a fifo
 	if (ctx->socket != -1)
 	{
@@ -235,10 +225,10 @@ void export_run(void *arg, int chipid, int gpioid, struct gpiod_line_event *even
 		ctx->events = new;
 	else
 	{
-		while (old->next != NULL) old = old->next;
+		while (old->next != NULL)
+			old = old->next;
 		old->next = new;
 	}
-	dbg("export: event");
 	pthread_mutex_unlock(&ctx->mutex);
 
 	pthread_cond_broadcast(&ctx->cond);

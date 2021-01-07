@@ -47,8 +47,14 @@
 #define SETPOLL_ONCE
 
 typedef int mutex_t;
-#define mutex_lock(mut) do{}while(0)
-#define mutex_unlock(mut) do{}while(0)
+#define mutex_lock(mut) \
+	do                  \
+	{                   \
+	} while (0)
+#define mutex_unlock(mut) \
+	do                    \
+	{                     \
+	} while (0)
 
 const char str_gpiod[] = "gpiod";
 
@@ -100,7 +106,7 @@ int gpiod_addchip(struct gpiod_chip *handle)
 	gpiochip_t *chip = g_gpiochip;
 	while (chip != NULL)
 	{
-		if (!strcmp(gpiod_chip_label(chip->handle),label))
+		if (!strcmp(gpiod_chip_label(chip->handle), label))
 			break;
 		chip = chip->next;
 	}
@@ -120,7 +126,8 @@ int gpiod_setline(int chipid, struct gpiod_line *handle, const char *name, int o
 {
 	uint32_t handleflags = 0;
 	gpiochip_t *chip = g_gpiochip;
-	while (chip != NULL && chip->id != chipid) chip = chip->next;
+	while (chip != NULL && chip->id != chipid)
+		chip = chip->next;
 	if (chip == NULL)
 	{
 		err("gpiod: chip %d not found", chipid);
@@ -175,7 +182,6 @@ int gpiod_setline(int chipid, struct gpiod_line *handle, const char *name, int o
 		}
 		else
 			warn("gpiod: request line %d in polling mode", gpiod_line_offset(handle));
-
 	}
 	gpio->fd = gpiod_line_event_get_fd(gpio->handle);
 
@@ -185,7 +191,7 @@ int gpiod_setline(int chipid, struct gpiod_line *handle, const char *name, int o
 		gpio->name = strdup(name);
 
 	if (g_gpios)
-		gpio->id = g_gpios->id +1;
+		gpio->id = g_gpios->id + 1;
 	gpio->next = g_gpios;
 	g_gpios = gpio;
 
@@ -195,7 +201,8 @@ int gpiod_setline(int chipid, struct gpiod_line *handle, const char *name, int o
 int gpiod_addhandler(int gpioid, int action, void *ctx, handler_t callback, free_ctx_t fcallbak)
 {
 	gpio_t *gpio = g_gpios;
-	while (gpio != NULL && gpio->id != gpioid) gpio = gpio->next;
+	while (gpio != NULL && gpio->id != gpioid)
+		gpio = gpio->next;
 	if (gpio == NULL)
 	{
 		err("gpiod: set handler, gpio %d not found", gpioid);
@@ -217,7 +224,8 @@ int gpiod_addhandler(int gpioid, int action, void *ctx, handler_t callback, free
 static gpio_t *gpiod_search(int gpioid)
 {
 	gpio_t *gpio = g_gpios;
-	while (gpio != NULL && gpio->id != gpioid) gpio = gpio->next;
+	while (gpio != NULL && gpio->id != gpioid)
+		gpio = gpio->next;
 	if (gpio == NULL)
 	{
 		err("gpiod: gpio %d not found", gpioid);
@@ -277,15 +285,13 @@ int gpiod_eventable(int gpioid)
 	if (gpio == NULL)
 		return -1;
 	return !((gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_INPUT) ||
-		(gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_OUTPUT));
+			 (gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_OUTPUT));
 }
 
 void gpiod_output(int gpioid, int value)
 {
 	int ret = -1;
-	dbg("output %.02d", gpioid);
 	gpio_t *gpio = gpiod_search(gpioid);
-	dbg("output %s", gpio->name);
 
 	if (gpio != NULL)
 		ret = gpiod_line_set_value(gpio->handle, value);
@@ -302,7 +308,7 @@ static int gpiod_setpoll(struct pollfd *poll_set, int numpoll)
 	{
 		if (numfds < numpoll)
 		{
-			if (! (gpio->last & DEBOUNCING))
+			if (!(gpio->last & DEBOUNCING))
 			{
 				poll_set[numfds].fd = gpio->fd;
 				poll_set[numfds].events = POLLIN | POLLPRI;
@@ -326,7 +332,7 @@ static int gpiod_readevent(gpio_t *gpio, struct gpiod_line_event *event)
 	int ret;
 	if (gpio->config.request_type == GPIOD_LINE_REQUEST_DIRECTION_INPUT)
 	{
-		clock_gettime( CLOCK_REALTIME, &event->ts);
+		clock_gettime(CLOCK_REALTIME, &event->ts);
 		/// the type is managed by the dispatcher
 		event->event_type = -1;
 	}
@@ -346,11 +352,6 @@ static int gpiod_dispatch(gpio_t *gpio, struct gpiod_line_event *event)
 		event->event_type = GPIOD_LINE_EVENT_FALLING_EDGE;
 	else
 		return 0;
-
-	dbg("gpiod: line %d %s", line,
-		(event->event_type == GPIOD_LINE_EVENT_RISING_EDGE)?
-			"rising":"falling");
-
 	if ((gpio->last & ~DEBOUNCING) == event->event_type)
 		return 0;
 	gpio->last = event->event_type | DEBOUNCING;
@@ -390,7 +391,7 @@ int gpiod_monitor()
 #endif
 	gpiod_check();
 
-	while(g_run)
+	while (g_run)
 	{
 		int ret;
 
@@ -469,7 +470,6 @@ void gpiod_free()
 #ifdef TEST
 void test_handler(void *ctx, int chipid, int line, struct gpiod_line_event event)
 {
-	dbg("event");
 }
 int main(int argc, char **argv)
 {

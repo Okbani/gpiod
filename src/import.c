@@ -41,7 +41,6 @@
 #include "gpiomonitor.h"
 #include "import.h"
 
-
 typedef struct import_s import_t;
 typedef struct import_event_s import_event_t;
 
@@ -68,7 +67,6 @@ struct import_s
 	pthread_t thread;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
-
 };
 
 static int import_scan_raw(const import_t *ctx, int socket, import_event_t *event);
@@ -83,7 +81,7 @@ static const char str_rising[] = "rising";
 static const char str_falling[] = "falling";
 static const char str_unamed[] = "unnamed";
 
-static void *import_thread(void * arg)
+static void *import_thread(void *arg)
 {
 	import_t *ctx = (import_t *)arg;
 	while (ctx->run)
@@ -98,7 +96,6 @@ void *import_create(const char *url, int gpioid, const char *format)
 	import_t *ctx = calloc(1, sizeof(*ctx));
 	ctx->default_event.gpioid = gpioid;
 	ctx->default_event.chipid = gpiod_chipid(gpioid);
-	dbg("import: import %s", url);
 	if (!strncmp(url, "fifo://", 7))
 	{
 		unlink(url + 7);
@@ -108,7 +105,7 @@ void *import_create(const char *url, int gpioid, const char *format)
 		ctx->accept = &import_accept_fifo;
 	}
 	// change the scan type
-    if (!strcmp(format, "raw"))
+	if (!strcmp(format, "raw"))
 	{
 		ctx->scan = &import_scan_raw;
 	}
@@ -127,51 +124,31 @@ void *import_create(const char *url, int gpioid, const char *format)
 // read socket, parse the buffer
 static int import_scan_raw(const import_t *ctx, int socket, import_event_t *event)
 {
-	dbg("scan gpioid %.02d", ctx->default_event.gpioid);
-	event->gpioid = ctx->default_event.gpioid; 
+	event->gpioid = ctx->default_event.gpioid;
 	event->chipid = ctx->default_event.chipid;
 
-    return read(socket, &event->event, sizeof(event->event));
+	return read(socket, &event->event, sizeof(event->event));
 }
 
 static int import_scan_simple(const import_t *ctx, int socket, import_event_t *event)
 {
-	event->gpioid = ctx->default_event.gpioid; 
+	event->gpioid = ctx->default_event.gpioid;
 	event->chipid = ctx->default_event.chipid;
 
-    char buffer[2];
+	char buffer[2];
 
-    int ret = read(socket, buffer, 2);
-    dbg("scan %c", buffer[0]);
-    
-    if (buffer[0] == '1')
-    {
-        event->event.event_type = GPIOD_LINE_EVENT_RISING_EDGE;
-    }
-    else
-    {
-        event->event.event_type = GPIOD_LINE_EVENT_FALLING_EDGE;
-    }
-    return ret;
+	int ret = read(socket, buffer, 2);
+
+	if (buffer[0] == '1')
+	{
+		event->event.event_type = GPIOD_LINE_EVENT_RISING_EDGE;
+	}
+	else
+	{
+		event->event.event_type = GPIOD_LINE_EVENT_FALLING_EDGE;
+	}
+	return ret;
 }
-
-// static int import_scan_json(const import_t *ctx, int socket, import_event_t *event)
-// {
-	
-//     fscanf()
-//     const char *name = gpiod_name(event->gpioid);
-// 	if (name == NULL)
-// 		name = str_unamed;
-// 	int ret;
-// 	ret = dprintf(socket,
-// 			"{\"chip\" = %.2d; " \
-// 			"\"gpio\" = %.2d; " \
-// 			"\"name\" = \"%s\"; " \
-// 			"\"status\" = \"%s\";}\n",
-// 			event->chipid, gpiod_line(event->gpioid), name,
-// 			(event->event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)? str_rising: str_falling);
-// 	return ret;
-// }
 
 static void import_change(import_t *ctx, import_event_t *event)
 {
@@ -182,19 +159,18 @@ static int import_accept_fifo(import_t *ctx)
 {
 	/// open block while a writer doesn't open the fifo
 	ctx->socket = open(ctx->url + 7, O_RDONLY);
-	dbg("import: new fifo client on %s", ctx->url + 7);
 	/// only one reader is possible with a fifo
 	if (ctx->socket != -1)
 	{
-        //scan data, create event
-        import_event_t event = {0};
-        ctx->scan(ctx, ctx->socket, &event);
-        import_change(ctx, &event);
-            
-        close(ctx->socket);
-        ctx->socket = -1;
-        /// cat try to read several time if closing is too fast
-        usleep(200000);
+		//scan data, create event
+		import_event_t event = {0};
+		ctx->scan(ctx, ctx->socket, &event);
+		import_change(ctx, &event);
+
+		close(ctx->socket);
+		ctx->socket = -1;
+		/// cat try to read several time if closing is too fast
+		usleep(200000);
 	}
 	else
 		err("gpiod: open %s %s", ctx->url + 7, strerror(errno));
@@ -204,7 +180,7 @@ static int import_accept_fifo(import_t *ctx)
 void import_free(void *arg)
 {
 	import_t *ctx = (import_t *)arg;
-    ctx->run = 0;
+	ctx->run = 0;
 	if (ctx->socket >= 0)
 		close(ctx->socket);
 	pthread_cond_destroy(&ctx->cond);
