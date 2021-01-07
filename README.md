@@ -82,3 +82,46 @@ rules=({
 	led = 27;
 	});
 ```
+
+Add an export block to display the state of a gpio
+
+```config
+rules=({
+	chipname = "MAX14830";
+        line = {
+                name = "SIGNAL_E4";
+        	};
+        exec = "/lib/gpiod/test.sh";
+        export = {
+                url = "fifo:///tmp/SIGNAL_E4";
+                format = "json";
+        	};
+	});
+```
+``` shell
+$ cat /tmp/SIGNAL_E4
+```
+
+Add an import block to change the state of a gpio
+
+```config
+rules=({
+	chipname = "MAX14830";
+        line = {
+                name = "CDE_RL2";
+                output = true;
+        	};
+        export = {
+                url = "fifo:///tmp/CDE_RL2";
+                format = "json";
+        	};
+        import = {
+                url = "fifo:///var/run/CDE_RL2";
+                format = "simple";
+        	};
+	});
+```
+``` shell
+$ echo 1 > /var/run/CDE_RL2
+$ cat /tmp/CDE_RL2
+```
