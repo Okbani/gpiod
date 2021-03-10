@@ -153,10 +153,10 @@ static int export_format_json(const export_t *ctx, int socket, export_event_t *e
 		name = str_unamed;
 	int ret;
 	ret = dprintf(socket,
-				  "{\"chip\" = %.2d; "
-				  "\"gpio\" = %.2d; "
-				  "\"name\" = \"%s\"; "
-				  "\"status\" = \"%s\";}\n",
+				  "{\"chip\": %d, "
+				  "\"gpio\": %d, "
+				  "\"name\": \"%s\", "
+				  "\"status\": \"%s\"}\n",
 				  event->chipid, gpiod_line(event->gpioid), name,
 				  (event->event.event_type == GPIOD_LINE_EVENT_RISING_EDGE) ? str_rising : str_falling);
 	return ret;
